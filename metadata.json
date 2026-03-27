@@ -1,0 +1,5 @@
+{
+  "name": "Social Feed with Comment Interaction",
+  "description": "A social media feed application featuring a quick comment interaction that triggers a detailed comment modal.",
+  "requestFramePermissions": []
+}
