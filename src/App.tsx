@@ -74,6 +74,7 @@ const KEYBOARD_ROWS = [
 export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [commentText, setCommentText] = useState('');
   
@@ -93,6 +94,7 @@ export default function App() {
 
   const openPostModal = () => {
     setIsPostModalOpen(true);
+    setIsKeyboardVisible(true);
   };
 
   const closePostModal = () => {
@@ -314,6 +316,7 @@ export default function App() {
                 <textarea 
                   autoFocus
                   value={postText}
+                  onFocus={() => setIsKeyboardVisible(true)}
                   onChange={(e) => setPostText(e.target.value)}
                   className="w-full h-full min-h-[120px] bg-transparent focus:outline-none text-gray-800 resize-none"
                 />
@@ -360,9 +363,12 @@ export default function App() {
               {/* Post Toolbar */}
               <div className="flex items-center justify-around py-3 text-gray-600">
                 <Mic className="w-6 h-6" />
-                <div className="relative">
-                  <div className="w-6 h-6 border-2 border-gray-600 rounded flex items-center justify-center">
-                    <div className="w-3 h-3 bg-gray-600 rounded-sm"></div>
+                <div 
+                  className="relative cursor-pointer"
+                  onClick={() => setIsKeyboardVisible(!isKeyboardVisible)}
+                >
+                  <div className={`w-6 h-6 border-2 rounded flex items-center justify-center transition-colors ${isKeyboardVisible ? 'border-indigo-500 bg-indigo-50' : 'border-gray-600'}`}>
+                    <Keyboard className={`w-4 h-4 ${isKeyboardVisible ? 'text-indigo-500' : 'text-gray-600'}`} />
                   </div>
                 </div>
                 <Smile className="w-6 h-6" />
@@ -378,62 +384,72 @@ export default function App() {
               </div>
 
               {/* Simulated Keyboard */}
-              <div className="bg-[#E1E4E9] p-2 select-none">
-                {/* Keyboard Toolbar */}
-                <div className="flex items-center justify-around py-2 mb-2 text-gray-600">
-                  <Keyboard className="w-5 h-5" />
-                  <Smile className="w-5 h-5" />
-                  <div className="w-6 h-6 border-2 border-gray-400 rounded flex items-center justify-center text-[10px] font-bold">:::</div>
-                  <Mic className="w-5 h-5" />
-                  <Type className="w-5 h-5" />
-                  <ChevronDown className="w-5 h-5" />
-                </div>
+              <AnimatePresence>
+                {isKeyboardVisible && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                    className="bg-[#E1E4E9] p-2 select-none overflow-hidden"
+                  >
+                    {/* Keyboard Toolbar */}
+                    <div className="flex items-center justify-around py-2 mb-2 text-gray-600">
+                      <Keyboard className="w-5 h-5" />
+                      <Smile className="w-5 h-5" />
+                      <div className="w-6 h-6 border-2 border-gray-400 rounded flex items-center justify-center text-[10px] font-bold">:::</div>
+                      <Mic className="w-5 h-5" />
+                      <Type className="w-5 h-5" />
+                      <ChevronDown className="w-5 h-5 cursor-pointer" onClick={() => setIsKeyboardVisible(false)} />
+                    </div>
 
-                {/* Keyboard Keys */}
-                <div className="flex flex-col gap-3">
-                  {KEYBOARD_ROWS.map((row, idx) => (
-                    <div key={idx} className="flex justify-center gap-1.5">
-                      {row.map(key => (
-                        <div 
-                          key={key} 
-                          className="bg-white rounded-md h-11 flex-1 max-w-[36px] flex items-center justify-center font-medium shadow-sm active:bg-gray-200 transition-colors"
-                          onClick={() => setPostText(prev => prev + key)}
-                        >
-                          {key}
+                    {/* Keyboard Keys */}
+                    <div className="flex flex-col gap-3">
+                      {KEYBOARD_ROWS.map((row, idx) => (
+                        <div key={idx} className="flex justify-center gap-1.5">
+                          {row.map(key => (
+                            <div 
+                              key={key} 
+                              className="bg-white rounded-md h-11 flex-1 max-w-[36px] flex items-center justify-center font-medium shadow-sm active:bg-gray-200 transition-colors"
+                              onClick={() => setPostText(prev => prev + key)}
+                            >
+                              {key}
+                            </div>
+                          ))}
                         </div>
                       ))}
-                    </div>
-                  ))}
-                  
-                  {/* Bottom Row */}
-                  <div className="flex justify-center gap-1.5 px-1">
-                    <div className="bg-gray-300 rounded-md h-11 w-12 flex items-center justify-center shadow-sm">
-                      <span className="text-sm font-bold">符</span>
-                    </div>
-                    <div className="bg-gray-300 rounded-md h-11 w-12 flex items-center justify-center shadow-sm">
-                      <span className="text-sm font-bold">123</span>
-                    </div>
-                    <div className="bg-white rounded-md h-11 w-8 flex items-center justify-center shadow-sm text-xl">,</div>
-                    <div className="bg-white rounded-md h-11 flex-1 flex items-center justify-center shadow-sm">
-                      <div className="w-6 h-1 bg-gray-300 rounded-full"></div>
-                    </div>
-                    <div className="bg-white rounded-md h-11 w-8 flex items-center justify-center shadow-sm text-xl">.</div>
-                    <div className="bg-gray-300 rounded-md h-11 w-12 flex items-center justify-center shadow-sm">
-                      <Delete className="w-5 h-5" onClick={() => setPostText(prev => prev.slice(0, -1))} />
-                    </div>
-                  </div>
+                      
+                      {/* Bottom Row */}
+                      <div className="flex justify-center gap-1.5 px-1">
+                        <div className="bg-gray-300 rounded-md h-11 w-12 flex items-center justify-center shadow-sm">
+                          <span className="text-sm font-bold">符</span>
+                        </div>
+                        <div className="bg-gray-300 rounded-md h-11 w-12 flex items-center justify-center shadow-sm">
+                          <span className="text-sm font-bold">123</span>
+                        </div>
+                        <div className="bg-white rounded-md h-11 w-8 flex items-center justify-center shadow-sm text-xl">,</div>
+                        <div className="bg-white rounded-md h-11 flex-1 flex items-center justify-center shadow-sm">
+                          <div className="w-6 h-1 bg-gray-300 rounded-full"></div>
+                        </div>
+                        <div className="bg-white rounded-md h-11 w-8 flex items-center justify-center shadow-sm text-xl">.</div>
+                        <div className="bg-gray-300 rounded-md h-11 w-12 flex items-center justify-center shadow-sm">
+                          <Delete className="w-5 h-5" onClick={() => setPostText(prev => prev.slice(0, -1))} />
+                        </div>
+                      </div>
 
-                  {/* Final Row */}
-                  <div className="flex justify-center gap-1.5 px-1 pb-2">
-                    <div className="bg-gray-300 rounded-md h-11 flex-1 flex items-center justify-center shadow-sm">
-                      <span className="text-sm font-bold">中/英</span>
+                      {/* Final Row */}
+                      <div className="flex justify-center gap-1.5 px-1 pb-2">
+                        <div className="bg-gray-300 rounded-md h-11 flex-1 flex items-center justify-center shadow-sm">
+                          <span className="text-sm font-bold">中/英</span>
+                        </div>
+                        <div className="bg-indigo-500 text-white rounded-md h-11 flex-1 flex items-center justify-center shadow-sm">
+                          <CornerDownLeft className="w-5 h-5" />
+                        </div>
+                      </div>
                     </div>
-                    <div className="bg-indigo-500 text-white rounded-md h-11 flex-1 flex items-center justify-center shadow-sm">
-                      <CornerDownLeft className="w-5 h-5" />
-                    </div>
-                  </div>
-                </div>
-              </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         )}
